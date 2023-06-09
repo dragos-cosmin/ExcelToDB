@@ -2,6 +2,7 @@ import org.apache.poi.ss.usermodel.*;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -20,7 +21,7 @@ public static final LocalDate EXCEL_EPOCH_REFERENCE=LocalDate.of(1899, Month.DEC
     public static void main(String[] args) throws IOException {
 
         List<FinancialRecord>financialRecords=new ArrayList<>();
-        Workbook workbook= WorkbookFactory.create(new FileInputStream(XLS_PATH));
+        Workbook workbook= WorkbookFactory.create(new File(XLS_PATH));
 
         Sheet sheet= workbook.getSheetAt(0);
         BigDecimal initialBalance=new BigDecimal("0");
@@ -32,7 +33,7 @@ public static final LocalDate EXCEL_EPOCH_REFERENCE=LocalDate.of(1899, Month.DEC
             Row row= rowIterator.next();
             if (row.getRowNum()==0) continue;
             if (row.getRowNum()==1){
-                initialBalance = BigDecimal.valueOf(row.getCell(2).getNumericCellValue());
+                initialBalance = BigDecimal.valueOf(row.getCell(2).getNumericCellValue()).setScale(2, RoundingMode.HALF_UP);
                 continue;
             }
 

@@ -2,11 +2,11 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-public class FinancialRecord implements Comparable{
+public class FinancialRecord implements Comparable<FinancialRecord> {
     private int id;
-    private  LocalDate date;
+    private LocalDate date;
     private FinancialType type;
-    private  BigDecimal amount;
+    private BigDecimal amount;
     private String observation;
 
     public FinancialRecord() {
@@ -57,12 +57,6 @@ public class FinancialRecord implements Comparable{
 
 
     @Override
-    public int compareTo(Object o) {
-        FinancialRecord record=(FinancialRecord) o;
-        return date.compareTo(record.date);
-    }
-
-    @Override
     public String toString() {
         return "FinancialRecord{" +
                 "id=" + id +
@@ -70,7 +64,12 @@ public class FinancialRecord implements Comparable{
                 ", type=" + type +
                 ", amount=" + amount +
                 ", observation='" + observation + '\'' +
-                '}'+'\n';
+                '}' + '\n';
+    }
+
+    @Override
+    public int compareTo(FinancialRecord o) {
+        return date.compareTo(o.date);
     }
 }
 

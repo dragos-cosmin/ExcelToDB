@@ -1,4 +1,4 @@
 public enum FinancialType {
-    payment,
-    encashment
+    PAYMENT,
+    ENCASHMENT
 }

@@ -1,7 +1,6 @@
 import org.apache.poi.ss.usermodel.*;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -21,7 +20,7 @@ public static final LocalDate EXCEL_EPOCH_REFERENCE=LocalDate.of(1899, Month.DEC
     public static void main(String[] args) throws IOException {
 
         List<FinancialRecord>financialRecords=new ArrayList<>();
-        Workbook workbook= WorkbookFactory.create(new File(XLS_PATH));
+        Workbook workbook= WorkbookFactory.create(new FileInputStream(XLS_PATH));
 
         Sheet sheet= workbook.getSheetAt(0);
         BigDecimal initialBalance=new BigDecimal("0");
@@ -33,7 +32,7 @@ public static final LocalDate EXCEL_EPOCH_REFERENCE=LocalDate.of(1899, Month.DEC
             Row row= rowIterator.next();
             if (row.getRowNum()==0) continue;
             if (row.getRowNum()==1){
-                initialBalance = new BigDecimal(row.getCell(2).getNumericCellValue());
+                initialBalance = BigDecimal.valueOf(row.getCell(2).getNumericCellValue());
                 continue;
             }
 
@@ -47,9 +46,7 @@ public static final LocalDate EXCEL_EPOCH_REFERENCE=LocalDate.of(1899, Month.DEC
 
                 switch (cell.getColumnIndex()){
                     case 0:
-                        if (!cell.equals(null)){
-                            countFromEpoch=new BigDecimal(cell.getNumericCellValue());
-                        } else {countFromEpoch=new BigDecimal("44926");}
+                        countFromEpoch = BigDecimal.valueOf(cell.getNumericCellValue());
 
                         LocalDate localDate=EXCEL_EPOCH_REFERENCE.plusDays(countFromEpoch.longValue());
 
@@ -63,19 +60,15 @@ public static final LocalDate EXCEL_EPOCH_REFERENCE=LocalDate.of(1899, Month.DEC
 
                         break;
                     case 3:
-                        if (!cell.equals(null)){
-                            BigDecimal encashment=new BigDecimal(cell.getNumericCellValue());
-                            financialRecord.setType(FinancialType.encashment);
-                            financialRecord.setAmount(encashment);
+                        BigDecimal encashment = BigDecimal.valueOf(cell.getNumericCellValue());
+                        financialRecord.setType(FinancialType.ENCASHMENT);
+                        financialRecord.setAmount(encashment);
 
-                        } else break;
-                    break;
+                        break;
                     case 4:
-                        if (!cell.equals(null)){
-                            BigDecimal payment=new BigDecimal(cell.getNumericCellValue());
-                            financialRecord.setType(FinancialType.payment);
-                            financialRecord.setAmount(payment);
-                        } else break;
+                        BigDecimal payment = BigDecimal.valueOf(cell.getNumericCellValue());
+                        financialRecord.setType(FinancialType.PAYMENT);
+                        financialRecord.setAmount(payment);
                         break;
                 }
 
@@ -103,10 +96,10 @@ public static final LocalDate EXCEL_EPOCH_REFERENCE=LocalDate.of(1899, Month.DEC
         for (FinancialRecord record:
                 bankAccount) {
             switch (record.getType()){
-                case payment -> {finalValue=finalValue.subtract(record.getAmount());
+                case PAYMENT -> {finalValue=finalValue.subtract(record.getAmount());
                     System.out.printf("%8s %20s %15.2f %12.2f %n",record.getDate().format(DateTimeFormatter.ofPattern("dd.MM.yy")),record.getObservation(),-record.getAmount().doubleValue(),finalValue);
                 }
-                case encashment -> {finalValue=finalValue.add(record.getAmount());
+                case ENCASHMENT -> {finalValue=finalValue.add(record.getAmount());
                     System.out.printf("%8s %20s %15.2f %12.2f %n",record.getDate().format(DateTimeFormatter.ofPattern("dd.MM.yy")),record.getObservation(),record.getAmount(),finalValue);
                 }
             }
@@ -119,9 +112,9 @@ public static final LocalDate EXCEL_EPOCH_REFERENCE=LocalDate.of(1899, Month.DEC
         try {
             Connection con=DbConnection.getInstance().getConnection();
             Statement stm=con.createStatement();
-            String query="INSERT INTO financial_record (fin_rec_date,fin_type,amount,observation)\n" +
+            String query="INSERT INTO bank_financial_records (fin_rec_date,fin_type,amount,observation)\n" +
                     "VALUE('"  + finRec.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) +
-                    "','" + finRec.getType() +
+                    "','" + finRec.getType().ordinal() +
                     "'," + finRec.getAmount() +
                     ",'" + finRec.getObservation()+
                     "');";
